@@ -1,6 +1,6 @@
 package de.htwberlin.webtech.webtech.persistence;
 
-import de.htwberlin.webtech.webtech.Document;
+import de.htwberlin.webtech.webtech.model.Document;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 

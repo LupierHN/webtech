@@ -1,5 +1,6 @@
 package de.htwberlin.webtech.webtech;
 
+import de.htwberlin.webtech.webtech.model.Document;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
