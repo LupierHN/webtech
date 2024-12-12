@@ -33,11 +33,23 @@ public class DocumentController {
         else return ResponseEntity.ok(documentOptional.get());
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteDocument(@PathVariable("id") final int id) {
+        final boolean removed = documentService.removeDocument(id);
+        if (removed) return ResponseEntity.noContent().build();
+        else return ResponseEntity.notFound().build();
+    }
+
     @PostMapping
     public ResponseEntity<Document> addDocument(@Valid @RequestBody final Document document) {
         final Document created = documentService.addDocument(document);
         return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
 
-
+    @PutMapping
+    public ResponseEntity<Document> editDocument(@Valid @RequestBody final Document document) {
+        final Document edited = documentService.editDocument(document);
+        if (edited == null) return ResponseEntity.notFound().build();
+        else return ResponseEntity.ok(edited);
+    }
 }
