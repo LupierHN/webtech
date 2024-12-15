@@ -1,10 +1,14 @@
 package de.htwberlin.webtech.webtech.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-import java.util.Date;
-
-public interface Token {
-    String getToken();
-    Date getExpirationDate();
-    String getSubject();
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
+public class Token {
+    private String token;
 }
