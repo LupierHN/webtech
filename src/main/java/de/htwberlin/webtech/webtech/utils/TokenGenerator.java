@@ -12,7 +12,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 
 
 public class TokenGenerator {
-    private static final String secret = "pKCb18PLcwQUBmvs82751v5fg0n2WimM";
+    private static final String secret = System.getenv("JWT_SECRET");
 
     /**
      * Generates a Refresh Token
