@@ -37,12 +37,13 @@ public class UserController {
     public ResponseEntity<List<Token>> registerUser(@Valid @RequestBody final User user) {
         List<Token> tokens = new ArrayList<>();
         try {
+            if (userService.findUser(user.getUsername())) return ResponseEntity.badRequest().build();
             final User created = userService.registerUser(user);
             tokens.add(TokenGenerator.generateAccessToken(created));
             tokens.add(TokenGenerator.generateRefreshToken(created));
             return new ResponseEntity<>(tokens, HttpStatus.CREATED);
         } catch (Exception e) {
-            return new ResponseEntity<>(tokens, HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
 
