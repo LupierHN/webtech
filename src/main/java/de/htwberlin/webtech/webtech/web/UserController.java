@@ -3,7 +3,7 @@ package de.htwberlin.webtech.webtech.web;
 import de.htwberlin.webtech.webtech.model.Token;
 import de.htwberlin.webtech.webtech.model.User;
 import de.htwberlin.webtech.webtech.service.UserService;
-import de.htwberlin.webtech.webtech.utils.TokenGenerator;
+import de.htwberlin.webtech.webtech.utils.TokenUtility;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -39,8 +39,8 @@ public class UserController {
         try {
             if (userService.findUser(user.getUsername())) return ResponseEntity.badRequest().build();
             final User created = userService.registerUser(user);
-            tokens.add(TokenGenerator.generateAccessToken(created));
-            tokens.add(TokenGenerator.generateRefreshToken(created));
+            tokens.add(TokenUtility.generateAccessToken(created));
+            tokens.add(TokenUtility.generateRefreshToken(created));
             return new ResponseEntity<>(tokens, HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -51,9 +51,10 @@ public class UserController {
     public ResponseEntity<List<Token>> loginUser(@Valid @RequestBody final User user) {
         List<Token> tokens = new ArrayList<>();
         try {
-            final User found = userService.getUser(user.getUId());
-            tokens.add(TokenGenerator.generateAccessToken(found));
-            tokens.add(TokenGenerator.generateRefreshToken(found));
+            final User found = userService.loginUser(user);
+            if (found == null) return ResponseEntity.notFound().build();
+            tokens.add(TokenUtility.generateAccessToken(found));
+            tokens.add(TokenUtility.generateRefreshToken(found));
             return new ResponseEntity<>(tokens, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -62,14 +63,21 @@ public class UserController {
 
     @PostMapping("/validateToken")
     public ResponseEntity<Boolean> validateToken(@RequestBody final Token token) {
-        final boolean valid = TokenGenerator.validateToken(token);
+        final boolean valid = TokenUtility.validateToken(token);
         return new ResponseEntity<>(valid, HttpStatus.OK);
     }
 
     @PostMapping("/renewToken")
-    public ResponseEntity<Token> renewToken(@RequestBody final Token token) {
-        final Token newToken = TokenGenerator.renewToken(token);
-        return new ResponseEntity<>(newToken, HttpStatus.OK);
+    public ResponseEntity<Token> renewToken(@RequestBody final Token token, @RequestHeader("Authorization") String authHeader) {
+        Token accessToken;
+        try {
+            accessToken = new Token(authHeader.substring(7));
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        final Token newToken = TokenUtility.renewToken(token, accessToken);
+        if (newToken == null) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        else return new ResponseEntity<>(newToken, HttpStatus.OK);
     }
 
     @PutMapping("/update")
