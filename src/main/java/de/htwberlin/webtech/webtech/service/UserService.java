@@ -30,9 +30,15 @@ public class UserService {
 
         public User loginUser(User user) {
                 BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-                User user_db = repository.findById(user.getUId()).orElse(null);
+                User user_db;
+                if (user.getUsername() != null) {
+                        user_db = repository.findByUsername(user.getUsername()).orElse(null);
+                } else if (user.getEmail() != null) {
+                        user_db = repository.findByEmail(user.getEmail()).orElse(null);
+                }else return null;
                 try {
-                        if (encoder.matches(user.getPassword(), user_db.getPassword())) return user_db;
+                    assert user_db != null;
+                    if (encoder.matches(user.getPassword(), user_db.getPassword())) return user_db;
                         else return null;
                 }catch (Exception e) {
                         return null;
