@@ -1,9 +1,6 @@
 package de.htwberlin.webtech.webtech.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,6 +18,11 @@ public class Document {
     private String name;
     private String path;
     private String docType;
+    private String content;
     private String docDate;
+
+    @ManyToOne
+    @JoinColumn(name = "uId", referencedColumnName = "uId")
+    private User owner;
 }
 

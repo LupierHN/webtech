@@ -7,6 +7,8 @@ import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 
+import de.htwberlin.webtech.webtech.persistence.UserRepository;
+import de.htwberlin.webtech.webtech.service.UserService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -91,6 +93,26 @@ public class TokenUtility {
     }
 
     /**
+     * Returns the User ID of the Token
+     *
+     * @param header
+     * @return
+     */
+    public static User getUserFromHeader(String header, UserService userService) {
+        Token token = TokenUtility.getTokenfromHeader(header);
+        try {
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(System.getenv("JWT_SECRET").getBytes(StandardCharsets.UTF_8))
+                    .build()
+                    .parseClaimsJws(token.getToken())
+                    .getBody();
+            return userService.getUser(claims.get("uid", Integer.class));
+        } catch (JwtException e) {
+            return null;
+        }
+    }
+
+    /**
      * Validates the Token
      *
      * @param token
@@ -157,6 +179,14 @@ public class TokenUtility {
                     .getBody()
                     .get("tokenType", String.class);
         } catch (JwtException e) {
+            return null;
+        }
+    }
+
+    public static Token getTokenfromHeader(String authHeader) {
+        try {
+            return new Token(authHeader.substring(7));
+        } catch (Exception e) {
             return null;
         }
     }
