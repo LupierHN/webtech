@@ -33,6 +33,12 @@ public class UserController {
         return new ResponseEntity<>(exists, HttpStatus.OK);
     }
 
+    @GetMapping("/finde/{email}")
+    public ResponseEntity<Boolean> findUserE(@PathVariable final String email) {
+        final boolean exists = userService.findUserE(email);
+        return new ResponseEntity<>(exists, HttpStatus.OK);
+    }
+
     @PostMapping("/register")
     public ResponseEntity<List<Token>> registerUser(@Valid @RequestBody final User user) {
         List<Token> tokens = new ArrayList<>();
@@ -92,6 +98,13 @@ public class UserController {
         final boolean removed = userService.deleteUser(id);
         if (removed) return ResponseEntity.noContent().build();
         else return ResponseEntity.notFound().build();
+    }
+
+    //JUST FOR TESTING
+    @GetMapping("/testToken")
+    public ResponseEntity<Token> testToken() {
+        Token token = TokenUtility.getTestToken();
+        return new ResponseEntity<>(token, HttpStatus.OK);
     }
 
 }

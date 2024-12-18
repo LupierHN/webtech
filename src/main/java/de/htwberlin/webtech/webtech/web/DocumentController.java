@@ -35,6 +35,7 @@ public class DocumentController {
 
     @GetMapping("/all")
     public ResponseEntity<Iterable<Document>> getUserDocuments(@RequestHeader("Authorization") String authHeader) {
+        if (!TokenUtility.validateAuthHeader(authHeader)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         User user = TokenUtility.getUserFromHeader(authHeader, userService);
         if (user == null) return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         final Iterable<Document> result = documentService.getUserDocuments(user);
@@ -43,6 +44,7 @@ public class DocumentController {
 
     @GetMapping("/{id}")
     public ResponseEntity<Document> getDocument(@PathVariable("id") final int id, @RequestHeader("Authorization") String authHeader) {
+        if (!TokenUtility.validateAuthHeader(authHeader)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         User user = TokenUtility.getUserFromHeader(authHeader, userService);
         final Optional<Document> documentOptional = documentService.getDocument(id, user);
         if (!documentOptional.isPresent()) return ResponseEntity.notFound().build();
@@ -51,6 +53,7 @@ public class DocumentController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteDocument(@PathVariable("id") final int id, @RequestHeader("Authorization") String authHeader) {
+        if (!TokenUtility.validateAuthHeader(authHeader)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         User user = TokenUtility.getUserFromHeader(authHeader, userService);
         final boolean removed = documentService.removeDocument(id, user);
         if (removed) return ResponseEntity.noContent().build();
@@ -59,6 +62,7 @@ public class DocumentController {
 
     @PostMapping
     public ResponseEntity<Document> addDocument(@Valid @RequestBody final Document document, @RequestHeader("Authorization") String authHeader) {
+        if (!TokenUtility.validateAuthHeader(authHeader)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         document.setOwner(TokenUtility.getUserFromHeader(authHeader, userService));
         final Document created = documentService.addDocument(document);
         return new ResponseEntity<>(created, HttpStatus.CREATED);
@@ -66,6 +70,7 @@ public class DocumentController {
 
     @PutMapping
     public ResponseEntity<Document> editDocument(@Valid @RequestBody final Document document, @RequestHeader("Authorization") String authHeader) {
+        if (!TokenUtility.validateAuthHeader(authHeader)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         document.setOwner(TokenUtility.getUserFromHeader(authHeader, userService));
         final Document edited = documentService.editDocument(document);
         if (edited == null) return ResponseEntity.notFound().build();

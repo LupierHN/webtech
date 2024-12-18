@@ -49,6 +49,8 @@ public class UserService {
                 return repository.findByUsername(username).isPresent();
         }
 
+        public boolean findUserE(String email) {return repository.findByEmail(email).isPresent();}
+
         public User updateUser(User user) {
                 User user_db = repository.findById(user.getUId()).orElse(null);
                 BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
@@ -63,5 +65,4 @@ public class UserService {
                 }
                 return false;
         }
-
 }

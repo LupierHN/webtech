@@ -7,12 +7,11 @@ import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 
+import java.util.logging.Logger;
+
 import de.htwberlin.webtech.webtech.persistence.UserRepository;
 import de.htwberlin.webtech.webtech.service.UserService;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 
 public class TokenUtility {
@@ -99,18 +98,23 @@ public class TokenUtility {
      * @return
      */
     public static User getUserFromHeader(String header, UserService userService) {
-        Token token = TokenUtility.getTokenfromHeader(header);
-        try {
-            Claims claims = Jwts.parserBuilder()
-                    .setSigningKey(System.getenv("JWT_SECRET").getBytes(StandardCharsets.UTF_8))
-                    .build()
-                    .parseClaimsJws(token.getToken())
-                    .getBody();
-            return userService.getUser(claims.get("uid", Integer.class));
-        } catch (JwtException e) {
+    Token token = TokenUtility.getTokenfromHeader(header);
+    try {
+        assert token != null;
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(System.getenv("JWT_SECRET").getBytes(StandardCharsets.UTF_8))
+                .build()
+                .parseClaimsJws(token.getToken())
+                .getBody();
+        Integer uid = claims.get("uid", Integer.class);
+        if (uid == null) {
             return null;
         }
+        return userService.getUser(uid);
+    } catch (JwtException e) {
+        return null;
     }
+}
 
     /**
      * Validates the Token
@@ -137,29 +141,40 @@ public class TokenUtility {
      * @param token
      * @return newToken
      */
+
     public static Token renewToken(Token token, Token accessToken) {
         Key key = Keys.hmacShaKeyFor(System.getenv("JWT_SECRET").getBytes(StandardCharsets.UTF_8));
         Date now = new Date();
         try {
+            Claims accessClaims;
+            try {
+                accessClaims = Jwts.parserBuilder()
+                        .setSigningKey(System.getenv("JWT_SECRET").getBytes(StandardCharsets.UTF_8))
+                        .build()
+                        .parseClaimsJws(accessToken.getToken())
+                        .getBody();
+            } catch (ExpiredJwtException e) {
+                accessClaims = e.getClaims();
+            }
+
             Claims claims = Jwts.parserBuilder()
                     .setSigningKey(System.getenv("JWT_SECRET").getBytes(StandardCharsets.UTF_8))
                     .build()
                     .parseClaimsJws(token.getToken())
                     .getBody();
-            Claims accessClaims = Jwts.parserBuilder()
-                    .setSigningKey(System.getenv("JWT_SECRET").getBytes(StandardCharsets.UTF_8))
-                    .build()
-                    .parseClaimsJws(accessToken.getToken())
-                    .getBody();
-            return new Token(Jwts.builder()
-                    .setSubject(claims.getSubject())
-                    .claim("tokenType", "access")
-                    .claim("uid", accessClaims.get("uid"))
-                    .setIssuedAt(now)
-                    .setExpiration(new Date(now.getTime() + 600000))
-                    .signWith(key, SignatureAlgorithm.HS512)
-                    .compact());
+            if (claims.getSubject().equals(accessClaims.getSubject())) {
+                return new Token(Jwts.builder()
+                        .setSubject(accessClaims.getSubject())
+                        .claim("tokenType", "access")
+                        .claim("uid", accessClaims.get("uid"))
+                        .setIssuedAt(now)
+                        .setExpiration(new Date(now.getTime() + 600000))
+                        .signWith(key, SignatureAlgorithm.HS512)
+                        .compact());
+            }else return null;
         } catch (JwtException e) {
+            return null;
+        } catch (Exception e) {
             return null;
         }
     }
@@ -189,5 +204,32 @@ public class TokenUtility {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    public static boolean validateAuthHeader( String authHeader) {
+        Token token = getTokenfromHeader(authHeader);
+        if (token == null) return false;
+        return validateToken(token);
+    }
+
+    //TESTING
+
+    /**
+     * Generates a Test Token with expiration in 10 seconds
+     * @return
+     */
+    public static Token getTestToken() {User user = new User();
+        Date now = new Date();
+        user.setUsername("HanzDieter");
+        user.setUId(12);
+        Key key = Keys.hmacShaKeyFor(System.getenv("JWT_SECRET").getBytes(StandardCharsets.UTF_8));
+        return new Token(Jwts.builder()
+                .setSubject(user.getUsername())
+                .claim("tokenType", "access")
+                .claim("uid", user.getUId())
+                .setIssuedAt(now)
+                .setExpiration(new Date(now.getTime()))
+                .signWith(key, SignatureAlgorithm.HS512)
+                .compact());
     }
 }
