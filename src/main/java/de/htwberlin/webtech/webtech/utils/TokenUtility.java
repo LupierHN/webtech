@@ -7,9 +7,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 
-import java.util.logging.Logger;
-
-import de.htwberlin.webtech.webtech.persistence.UserRepository;
 import de.htwberlin.webtech.webtech.service.UserService;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
@@ -19,7 +16,7 @@ public class TokenUtility {
     /**
      * Generates a Refresh Token
      *
-     * @param user
+     * @param user User
      * @return refreshToken
      */
     public static Token generateRefreshToken(User user) {
@@ -37,7 +34,7 @@ public class TokenUtility {
     /**
      * Generates an Access Token
      *
-     * @param user
+     * @param user User
      * @return accessToken
      */
     public static Token generateAccessToken(User user) {
@@ -56,7 +53,7 @@ public class TokenUtility {
     /**
      * Returns the Expiration Date of the Token
      *
-     * @param token
+     * @param token Token
      * @return expirationDate
      */
     public static Date getExpirationDate(Token token) {
@@ -75,7 +72,7 @@ public class TokenUtility {
     /**
      * Returns the Subject of the Token
      *
-     * @param token
+     * @param token Token
      * @return subject
      */
     public static String getSubject(Token token) {
@@ -94,11 +91,12 @@ public class TokenUtility {
     /**
      * Returns the User ID of the Token
      *
-     * @param header
-     * @return
+     * @param header Authorization Header
+     * @param userService UserService
+     * @return user User
      */
     public static User getUserFromHeader(String header, UserService userService) {
-    Token token = TokenUtility.getTokenfromHeader(header);
+    Token token = TokenUtility.getTokenFromHeader(header);
     try {
         assert token != null;
         Claims claims = Jwts.parserBuilder()
@@ -119,7 +117,7 @@ public class TokenUtility {
     /**
      * Validates the Token
      *
-     * @param token
+     * @param token a Token
      * @return boolean
      */
     public static boolean validateToken(Token token) {
@@ -138,10 +136,10 @@ public class TokenUtility {
     /**
      * Renews the Token
      *
-     * @param token
+     * @param token refreshToken
+     * @param accessToken accessToken
      * @return newToken
      */
-
     public static Token renewToken(Token token, Token accessToken) {
         Key key = Keys.hmacShaKeyFor(System.getenv("JWT_SECRET").getBytes(StandardCharsets.UTF_8));
         Date now = new Date();
@@ -182,8 +180,8 @@ public class TokenUtility {
     /**
      * Returns the Token Type
      *
-     * @param token
-     * @return tokenType
+     * @param token Token
+     * @return tokenType (access/refresh)
      */
     public static String getTokenType(Token token) {
         try {
@@ -198,7 +196,13 @@ public class TokenUtility {
         }
     }
 
-    public static Token getTokenfromHeader(String authHeader) {
+    /**
+     * Returns the Token from the Header
+     *
+     * @param authHeader Authorization Header
+     * @return token accessToken
+     */
+    public static Token getTokenFromHeader(String authHeader) {
         try {
             return new Token(authHeader.substring(7));
         } catch (Exception e) {
@@ -206,8 +210,14 @@ public class TokenUtility {
         }
     }
 
+    /**
+     * Validates the Authorization Header
+     *
+     * @param authHeader Authorization Header
+     * @return boolean
+     */
     public static boolean validateAuthHeader( String authHeader) {
-        Token token = getTokenfromHeader(authHeader);
+        Token token = getTokenFromHeader(authHeader);
         if (token == null) return false;
         return validateToken(token);
     }
@@ -215,10 +225,11 @@ public class TokenUtility {
     //TESTING
 
     /**
-     * Generates a Test Token with expiration in 10 seconds
-     * @return
+     * Generates a Test Token with expiration now
+     * @return token with expiration now
      */
-    public static Token getTestToken() {User user = new User();
+    public static Token getTestToken() {
+        User user = new User();
         Date now = new Date();
         user.setUsername("HanzDieter");
         user.setUId(12);

@@ -21,24 +21,44 @@ import java.util.List;
 public class UserController {
     private final UserService userService;
 
+    //JUST FOR TESTING
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Iterable<User>> getUsers() {
         final Iterable<User> users = userService.getUsers();
         return ResponseEntity.ok(users);
     }
 
+    /**
+     * Check if a user exists
+     *
+     * @param username String
+     * @return Boolean exists
+     */
     @GetMapping("/find/{username}")
     public ResponseEntity<Boolean> findUser(@PathVariable final String username) {
         final boolean exists = userService.findUser(username);
         return new ResponseEntity<>(exists, HttpStatus.OK);
     }
 
+
+    /**
+     * Check if a user exists
+     *
+     * @param email String
+     * @return Boolean exists
+     */
     @GetMapping("/finde/{email}")
     public ResponseEntity<Boolean> findUserE(@PathVariable final String email) {
         final boolean exists = userService.findUserE(email);
         return new ResponseEntity<>(exists, HttpStatus.OK);
     }
 
+    /**
+     * Register a new user
+     *
+     * @param user User
+     * @return Tokens accessToken, refreshToken
+     */
     @PostMapping("/register")
     public ResponseEntity<List<Token>> registerUser(@Valid @RequestBody final User user) {
         List<Token> tokens = new ArrayList<>();
@@ -53,6 +73,12 @@ public class UserController {
         }
     }
 
+    /**
+     * Login a user
+     *
+     * @param user User with mail and password
+     * @return Tokens accessToken, refreshToken
+     */
     @PostMapping("/login")
     public ResponseEntity<List<Token>> loginUser(@Valid @RequestBody final User user) {
         List<Token> tokens = new ArrayList<>();
@@ -67,12 +93,25 @@ public class UserController {
         }
     }
 
+    /**
+     * Check if a token is valid
+     *
+     * @param token Token
+     * @return Boolean valid
+     */
     @PostMapping("/validateToken")
     public ResponseEntity<Boolean> validateToken(@RequestBody final Token token) {
         final boolean valid = TokenUtility.validateToken(token);
         return new ResponseEntity<>(valid, HttpStatus.OK);
     }
 
+    /**
+     * Renew an access token
+     *
+     * @param token refreshToken
+     * @param authHeader Authorization Header with accessToken
+     * @return Token accessToken
+     */
     @PostMapping("/renewToken")
     public ResponseEntity<Token> renewToken(@RequestBody final Token token, @RequestHeader("Authorization") String authHeader) {
         Token accessToken;
@@ -86,6 +125,12 @@ public class UserController {
         else return new ResponseEntity<>(newToken, HttpStatus.OK);
     }
 
+    /**
+     * update a user
+     *
+     * @param user User
+     * @return User updated
+     */
     @PutMapping("/update")
     public ResponseEntity<User> updateUser(@Valid @RequestBody final User user) {
         final User updated = userService.updateUser(user);
@@ -93,6 +138,12 @@ public class UserController {
         else return ResponseEntity.ok(updated);
     }
 
+    /**
+     * delete a user
+     *
+     * @param id int
+     * @return void
+     */
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable("id") final int id) {
         final boolean removed = userService.deleteUser(id);
