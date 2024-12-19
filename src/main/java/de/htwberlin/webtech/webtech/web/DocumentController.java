@@ -33,6 +33,12 @@ public class DocumentController {
         return ResponseEntity.ok(result);
     }
 
+    /**
+     * Get all documents of a user
+     *
+     * @param authHeader Authorization Header with access token
+     * @return List of documents
+     */
     @GetMapping("/all")
     public ResponseEntity<Iterable<Document>> getUserDocuments(@RequestHeader("Authorization") String authHeader) {
         if (!TokenUtility.validateAuthHeader(authHeader)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -42,6 +48,13 @@ public class DocumentController {
         return ResponseEntity.ok(result);
     }
 
+    /**
+     * Get a document by id
+     *
+     * @param id Document ID
+     * @param authHeader Authorization Header with access token
+     * @return Document
+     */
     @GetMapping("/{id}")
     public ResponseEntity<Document> getDocument(@PathVariable("id") final int id, @RequestHeader("Authorization") String authHeader) {
         if (!TokenUtility.validateAuthHeader(authHeader)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -51,6 +64,13 @@ public class DocumentController {
         else return ResponseEntity.ok(documentOptional.get());
     }
 
+    /**
+     * Delete a document by id
+     *
+     * @param id Document ID
+     * @param authHeader Authorization Header with access token
+     * @return Status
+     */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteDocument(@PathVariable("id") final int id, @RequestHeader("Authorization") String authHeader) {
         if (!TokenUtility.validateAuthHeader(authHeader)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -60,6 +80,13 @@ public class DocumentController {
         else return ResponseEntity.notFound().build();
     }
 
+    /**
+     * Add a document
+     *
+     * @param document Document
+     * @param authHeader Authorization Header with access token
+     * @return Document
+     */
     @PostMapping
     public ResponseEntity<Document> addDocument(@Valid @RequestBody final Document document, @RequestHeader("Authorization") String authHeader) {
         if (!TokenUtility.validateAuthHeader(authHeader)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -68,6 +95,13 @@ public class DocumentController {
         return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
 
+    /**
+     * Edit a document
+     *
+     * @param document Document
+     * @param authHeader Authorization Header with access token
+     * @return Document
+     */
     @PutMapping
     public ResponseEntity<Document> editDocument(@Valid @RequestBody final Document document, @RequestHeader("Authorization") String authHeader) {
         if (!TokenUtility.validateAuthHeader(authHeader)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
