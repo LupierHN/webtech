@@ -1,9 +1,7 @@
 package de.htwberlin.webtech.webtech.web;
 
 import de.htwberlin.webtech.webtech.model.Document;
-import de.htwberlin.webtech.webtech.model.Token;
 import de.htwberlin.webtech.webtech.model.User;
-import de.htwberlin.webtech.webtech.persistence.UserRepository;
 import de.htwberlin.webtech.webtech.service.DocumentService;
 import de.htwberlin.webtech.webtech.service.UserService;
 import de.htwberlin.webtech.webtech.utils.TokenUtility;
@@ -16,6 +14,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
+import java.util.Set;
 
 @Controller
 @AllArgsConstructor
@@ -65,6 +64,14 @@ public class DocumentController {
     }
 
     /**
+     * Find a document by name or contentsnippet
+     *
+     * @param search String
+     * @param authHeader Authorization Header with access token
+     * @return List of documents
+     */
+
+    /**
      * Delete a document by id
      *
      * @param id Document ID
@@ -109,5 +116,36 @@ public class DocumentController {
         final Document edited = documentService.editDocument(document);
         if (edited == null) return ResponseEntity.notFound().build();
         else return ResponseEntity.ok(edited);
+    }
+
+    /**
+     * Get all shared documents of a user
+     * @param authHeader Authorization Header with access token
+     * @return List of shared documents
+     */
+    @GetMapping("/shared")
+    public ResponseEntity<Set<Document>> getSharedDocuments(@RequestHeader("Authorization") String authHeader) {
+        if (!TokenUtility.validateAuthHeader(authHeader)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        User user = TokenUtility.getUserFromHeader(authHeader, userService);
+        if (user == null) return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        Set<Document> sharedDocuments = documentService.getSharedDocumentsByUser(user);
+        return ResponseEntity.ok(sharedDocuments);
+    }
+
+    /**
+     * Share a document with another user
+     * @param documentId Document ID
+     * @param userId UserID of the user to share with
+     * @param authHeader Authorization Header with access token
+     * @return Status
+     */
+    @PostMapping("/share/{documentId}/{userId}")
+    public ResponseEntity<Void> shareDocument(@PathVariable("documentId") final int documentId, @PathVariable("userId") final int userId, @RequestHeader("Authorization") String authHeader) {
+        if (!TokenUtility.validateAuthHeader(authHeader)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        User user = TokenUtility.getUserFromHeader(authHeader, userService);
+        if (user == null) return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        boolean shared = documentService.shareDocument(documentId, userId, user);
+        if (shared) return ResponseEntity.noContent().build();
+        else return ResponseEntity.notFound().build();
     }
 }

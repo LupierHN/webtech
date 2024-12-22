@@ -29,6 +29,19 @@ public class UserController {
     }
 
     /**
+     * Get a user by id from the Authorization Header
+     *
+     * @return User
+     */
+    @GetMapping("/get")
+    public ResponseEntity<User> getUser(@RequestHeader("Authorization") String authHeader) {
+        if (!TokenUtility.validateAuthHeader(authHeader)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        final User user = TokenUtility.getUserFromHeader(authHeader, userService);
+        if (user == null) return ResponseEntity.notFound().build();
+        else return ResponseEntity.ok(user);
+    }
+
+    /**
      * Check if a user exists
      *
      * @param username String

@@ -77,7 +77,7 @@ public class DocumentControllerTest {
     @Test
     @DisplayName("Test for deleting a document - Expected status: 204 No Content")
     public void testDeleteDocument() throws Exception {
-        Mockito.when(documentService.removeDocument(1, null)).thenReturn(true);
+        Mockito.when(documentService.removeDocument(1, null)).thenReturn(Boolean.TRUE);
 
         mockMvc.perform(delete("/api/documents/1")
                 .header("Authorization", "Bearer testtoken"))

@@ -1,10 +1,13 @@
 package de.htwberlin.webtech.webtech.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.util.Set;
 
 @Entity
 @Getter
@@ -24,5 +27,8 @@ public class Document {
     @ManyToOne
     @JoinColumn(name = "uId", referencedColumnName = "uId")
     private User owner;
-}
 
+    @OneToMany(mappedBy = "document")
+    @JsonIgnore
+    private Set<SharedDoc> sharedUsers;
+}

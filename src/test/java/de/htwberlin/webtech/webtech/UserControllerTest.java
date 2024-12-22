@@ -40,14 +40,38 @@ public class UserControllerTest {
         User user = new User();
         user.setUsername("testuser");
         user.setPassword("password");
+        user.setEmail("testmail@test.com");
+        user.setFirstName("Test");
+        user.setLastName("User");
 
         Mockito.when(userService.registerUser(Mockito.any(User.class))).thenReturn(user);
+        Mockito.when(userService.findUser("testuser")).thenReturn(Boolean.FALSE);
 
         mockMvc.perform(post("/api/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"username\":\"testuser\",\"password\":\"password\"}"))
+                .content("{\"username\":\"testuser\",\"password\":\"password\",\"email\":\"testmail@test.com\",\"firstName\":\"Test\",\"lastName\":\"User\"}"))
                 .andExpect(status().isCreated());
     }
+
+    @Test
+    @DisplayName("Test for registering a user with an existing username - Expected status: 400 Bad Request")
+    public void testRegisterUserWithExistingUsername() throws Exception {
+        User user = new User();
+        user.setUsername("testuser");
+        user.setPassword("password");
+        user.setEmail("testmail@test.com");
+        user.setFirstName("Test");
+        user.setLastName("User");
+
+        Mockito.when(userService.findUser("testuser")).thenReturn(Boolean.TRUE);
+
+        mockMvc.perform(post("/api/auth/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"username\":\"testuser\",\"password\":\"password\",\"email\":\"testmail@test.com\",\"firstName\":\"Test\",\"lastName\":\"User\"}"))
+                .andExpect(status().isBadRequest());
+    }
+
+
 
     @Test
     @DisplayName("Test for logging in a user - Expected status: 200 OK")
@@ -75,7 +99,7 @@ public class UserControllerTest {
     @Test
     @DisplayName("Test for finding a user by username - Expected status: 200 OK, Expected content: 'true'")
     public void testFindUser() throws Exception {
-        Mockito.when(userService.findUser("testuser")).thenReturn(true);
+        Mockito.when(userService.findUser("testuser")).thenReturn(Boolean.TRUE);
 
         mockMvc.perform(get("/api/auth/find/testuser")
                 .accept(MediaType.APPLICATION_JSON))
@@ -127,7 +151,7 @@ public class UserControllerTest {
     @Test
     @DisplayName("Test for deleting a user - Expected status: 204 No Content")
     public void testDeleteUser() throws Exception {
-        Mockito.when(userService.deleteUser(1)).thenReturn(true);
+        Mockito.when(userService.deleteUser(1)).thenReturn(Boolean.TRUE);
 
         mockMvc.perform(delete("/api/auth/delete/1"))
                 .andExpect(status().isNoContent());

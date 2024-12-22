@@ -17,7 +17,7 @@ public class TokenUtility {
      * Generates a Refresh Token
      *
      * @param user User
-     * @return refreshToken
+     * @return refreshToken Token with expiration 14 days
      */
     public static Token generateRefreshToken(User user) {
         Date now = new Date();
@@ -35,7 +35,7 @@ public class TokenUtility {
      * Generates an Access Token
      *
      * @param user User
-     * @return accessToken
+     * @return accessToken Token with expiration 10 minutes
      */
     public static Token generateAccessToken(User user) {
     Date now = new Date();
@@ -170,8 +170,6 @@ public class TokenUtility {
                         .signWith(key, SignatureAlgorithm.HS512)
                         .compact());
             }else return null;
-        } catch (JwtException e) {
-            return null;
         } catch (Exception e) {
             return null;
         }
