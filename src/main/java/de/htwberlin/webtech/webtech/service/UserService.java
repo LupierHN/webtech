@@ -14,20 +14,43 @@ public class UserService {
         @Autowired
         private UserRepository repository;
 
+        /**
+         * Register a new user
+         *
+         * @param user User
+         * @return User
+         */
         public User registerUser(User user) {
                 BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
                 user.setPassword(encoder.encode(user.getPassword()));
             return repository.save(user);
         }
 
+        /**
+         * Get all users
+         *
+         * @return Iterable<User>
+         */
         public Iterable<User> getUsers() {
                 return repository.findAll();
         }
 
+        /**
+         * Get a user by id
+         *
+         * @param id int
+         * @return User
+         */
         public User getUser(int id) {
                 return repository.findById(id).orElse(null);
         }
 
+        /**
+         * Login a user
+         *
+         * @param user User with email and password necessary
+         * @return User
+         */
         public User loginUser(User user) {
                 BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
                 User user_db;
@@ -45,19 +68,49 @@ public class UserService {
                 }
         }
 
+        /**
+         * Check if a user exists by username
+         *
+         * @param username String
+         * @return Boolean exists
+         */
         public boolean findUser(String username) {
                 return repository.findByUsername(username).isPresent();
         }
 
+        /**
+         * Check if a user exists by email
+         *
+         * @param email String
+         * @return Boolean exists
+         */
         public boolean findUserE(String email) {return repository.findByEmail(email).isPresent();}
 
+        /**
+         * Update a user
+         *
+         * @param user User
+         * @return User
+         */
         public User updateUser(User user) {
                 User user_db = repository.findById(user.getUId()).orElse(null);
+                if (user_db == null) return null;
                 BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-                user.setPassword(encoder.encode(user.getPassword()));
-                return repository.save(user);
+                user_db.setPassword(encoder.encode(user.getPassword()));
+                user_db.setEmail(user.getEmail());
+                user_db.setUsername(user.getUsername());
+                user_db.setFirstName(user.getFirstName());
+                user_db.setLastName(user.getLastName());
+                return repository.save(user_db);
         }
 
+
+        /**
+         * Delete a user
+         *
+         * @param id int
+         * @return Boolean
+         */
         public boolean deleteUser(int id) {
                 if (repository.existsById(id)) {
                         repository.deleteById(id);

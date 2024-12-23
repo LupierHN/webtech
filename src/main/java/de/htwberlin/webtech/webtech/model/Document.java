@@ -28,7 +28,7 @@ public class Document {
     @JoinColumn(name = "uId", referencedColumnName = "uId")
     private User owner;
 
-    @OneToMany(mappedBy = "document")
-    @JsonIgnore
-    private Set<SharedDoc> sharedUsers;
+//    @JsonIgnore
+    @ManyToMany(mappedBy = "sharedDocuments")
+    private Set<User> sharedWith;
 }

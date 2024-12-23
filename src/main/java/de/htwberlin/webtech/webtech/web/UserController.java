@@ -145,7 +145,11 @@ public class UserController {
      * @return User updated
      */
     @PutMapping("/update")
-    public ResponseEntity<User> updateUser(@Valid @RequestBody final User user) {
+    public ResponseEntity<User> updateUser(@Valid @RequestBody final User user, @RequestHeader("Authorization") String authHeader) {
+        if (!TokenUtility.validateAuthHeader(authHeader)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        User db_user = TokenUtility.getUserFromHeader(authHeader, userService);
+        if (db_user == null) return ResponseEntity.notFound().build();
+        user.setUId(db_user.getUId());
         final User updated = userService.updateUser(user);
         if (updated == null) return ResponseEntity.notFound().build();
         else return ResponseEntity.ok(updated);

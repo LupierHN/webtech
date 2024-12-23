@@ -25,10 +25,12 @@ public class DocumentController {
 
     //JUST FOR TESTING
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Iterable<Document>> getDocuments(@RequestParam final Optional<String> docType) {
+    public ResponseEntity<Iterable<Document>> getDocuments(@RequestParam final Optional<String> docType, @RequestHeader("Authorization") String authHeader) {
+        if (!TokenUtility.validateAuthHeader(authHeader)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        User user = TokenUtility.getUserFromHeader(authHeader, userService);
         final Iterable<Document> result = docType.isEmpty() || docType.get().isBlank()
-                ? documentService.getDocuments()
-                : documentService.getDocuments(docType.get());
+                ? documentService.getUserDocuments(user)
+                : documentService.getDocuments(docType.get(), user);
         return ResponseEntity.ok(result);
     }
 
@@ -119,7 +121,8 @@ public class DocumentController {
     }
 
     /**
-     * Get all shared documents of a user
+     * Get all shared documents of a user (shared with me)
+     *
      * @param authHeader Authorization Header with access token
      * @return List of shared documents
      */
@@ -128,24 +131,70 @@ public class DocumentController {
         if (!TokenUtility.validateAuthHeader(authHeader)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         User user = TokenUtility.getUserFromHeader(authHeader, userService);
         if (user == null) return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        Set<Document> sharedDocuments = documentService.getSharedDocumentsByUser(user);
-        return ResponseEntity.ok(sharedDocuments);
+        return ResponseEntity.ok(user.getSharedDocuments());
     }
 
     /**
-     * Share a document with another user
-     * @param documentId Document ID
-     * @param userId UserID of the user to share with
+     * Get all documents shared with users (ownend by me)
+     *
      * @param authHeader Authorization Header with access token
-     * @return Status
+     * @return List of shared documents
      */
-    @PostMapping("/share/{documentId}/{userId}")
-    public ResponseEntity<Void> shareDocument(@PathVariable("documentId") final int documentId, @PathVariable("userId") final int userId, @RequestHeader("Authorization") String authHeader) {
+    @GetMapping("/sharedWith")
+    public ResponseEntity<Iterable<Document>> getSharedWithDocuments(@RequestHeader("Authorization") String authHeader) {
         if (!TokenUtility.validateAuthHeader(authHeader)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         User user = TokenUtility.getUserFromHeader(authHeader, userService);
         if (user == null) return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        boolean shared = documentService.shareDocument(documentId, userId, user);
-        if (shared) return ResponseEntity.noContent().build();
-        else return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(documentService.getSharedDocuments(user));
+    }
+
+    /**
+     * Share a document with a user
+     *
+     * @param docId DocumentID to share
+     * @param uId UserID to share with
+     * @param authHeader Authorization Header with access token
+     * @return Status
+     */
+    @PostMapping("/share/{docId}/{uId}")
+    public ResponseEntity<Void> shareDocument(@PathVariable("docId") final int docId, @PathVariable("uId") final int uId, @RequestHeader("Authorization") String authHeader) {
+        if (!TokenUtility.validateAuthHeader(authHeader)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        User user = TokenUtility.getUserFromHeader(authHeader, userService);
+        if (user == null) return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        final Optional<Document> documentOptional = documentService.getDocument(docId, user);
+        if (!documentOptional.isPresent()) return ResponseEntity.notFound().build();
+        final User shareWith = userService.getUser(uId);
+        if (shareWith == null) return ResponseEntity.notFound().build();
+        final Document document = documentOptional.get();
+        document.getSharedWith().add(shareWith);
+        shareWith.getSharedDocuments().add(document);
+        userService.updateUser(shareWith);
+        documentService.editDocument(document);
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Unshare a document with a user
+     *
+     * @param docId DocumentID to unshare
+     * @param uId UserID to unshare with
+     * @param authHeader Authorization Header with access token
+     * @return Status
+     */
+    @DeleteMapping("/share/{docId}/{uId}")
+    public ResponseEntity<Void> unshareDocument(@PathVariable("docId") final int docId, @PathVariable("uId") final int uId, @RequestHeader("Authorization") String authHeader) {
+        if (!TokenUtility.validateAuthHeader(authHeader)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        User user = TokenUtility.getUserFromHeader(authHeader, userService);
+        if (user == null) return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        final Optional<Document> documentOptional = documentService.getDocument(docId, user);
+        if (!documentOptional.isPresent()) return ResponseEntity.notFound().build();
+        final User shareWith = userService.getUser(uId);
+        if (shareWith == null) return ResponseEntity.notFound().build();
+        final Document document = documentOptional.get();
+        document.getSharedWith().remove(shareWith);
+        shareWith.getSharedDocuments().remove(document);
+        userService.updateUser(shareWith);
+        documentService.editDocument(document);
+        return ResponseEntity.noContent().build();
     }
 }

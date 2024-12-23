@@ -24,7 +24,12 @@ public class User {
     private String firstName;
     private String lastName;
 
-    @OneToMany(mappedBy = "user")
     @JsonIgnore
-    private Set<SharedDoc> sharedDocuments;
+    @ManyToMany(cascade = CascadeType.ALL)
+    @JoinTable(
+            name = "sharedDocuments",
+            joinColumns = {@JoinColumn(name = "uId")},
+            inverseJoinColumns =  { @JoinColumn(name = "docId") }
+    )
+    Set<Document> sharedDocuments;
 }
