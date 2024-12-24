@@ -7,6 +7,8 @@ import de.htwberlin.webtech.webtech.persistence.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.sql.Blob;
+import java.sql.SQLException;
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.Objects;
@@ -94,10 +96,6 @@ public class DocumentService {
      * @return
      */
     public Document addDocument(final Document document) {
-        String format = "yyyy-MM-dd";
-        DateFormat df = new java.text.SimpleDateFormat(format);
-        Date now = new Date();
-        document.setDocDate(df.format(now));
         return this.documentRepository.save(document);
     }
 
@@ -110,6 +108,23 @@ public class DocumentService {
     public Document editDocument(final Document document) {
         if (!this.documentRepository.existsById(document.getDocId())) return null;
         return addDocument(document);
+    }
+
+    public Optional<Document> getDocumentContent(int id, User user) {
+        Optional<Document> document = this.documentRepository.findById(id);
+        if (document.isPresent() && document.get().getOwner().getUId().equals(user.getUId())) {
+            return document;
+        }
+        return Optional.empty();
+    }
+
+    public void setDocumentContent(int id, String content, User user) {
+        Optional<Document> document = this.documentRepository.findById(id);
+        if (document.isPresent() && document.get().getOwner().getUId().equals(user.getUId())) {
+            Document doc = document.get();
+            doc.setContent(content);
+            this.documentRepository.save(doc);
+        }
     }
 
     /**
@@ -125,5 +140,10 @@ public class DocumentService {
                 this.documentRepository.deleteById(id);
         }
         return document.isPresent();
+    }
+
+    //JUST FOR TESTING
+    public void removeAllDocuments() {
+        this.documentRepository.deleteAll();
     }
 }

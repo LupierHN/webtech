@@ -13,6 +13,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.sql.Blob;
+import java.sql.SQLException;
+import java.text.DateFormat;
+import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
 
@@ -32,6 +36,13 @@ public class DocumentController {
                 ? documentService.getUserDocuments(user)
                 : documentService.getDocuments(docType.get(), user);
         return ResponseEntity.ok(result);
+    }
+
+    //JUST FOR TESTING
+    @DeleteMapping("/all")
+    public ResponseEntity<Void> deleteAllDocuments() {
+        documentService.removeAllDocuments();
+        return ResponseEntity.noContent().build();
     }
 
     /**
@@ -63,6 +74,24 @@ public class DocumentController {
         final Optional<Document> documentOptional = documentService.getDocument(id, user);
         if (!documentOptional.isPresent()) return ResponseEntity.notFound().build();
         else return ResponseEntity.ok(documentOptional.get());
+    }
+
+    @GetMapping("/content/{id}")
+    public ResponseEntity<String> getDocumentContent(@PathVariable("id") final int id, @RequestHeader("Authorization") String authHeader) {
+        if (!TokenUtility.validateAuthHeader(authHeader)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        User user = TokenUtility.getUserFromHeader(authHeader, userService);
+        final Optional<Document> documentOptional = documentService.getDocumentContent(id, user);
+        if (documentOptional.isPresent()) System.out.println("Document content: " + documentOptional.get().getContent());
+        if (!documentOptional.isPresent()) return ResponseEntity.notFound().build();
+        else return ResponseEntity.ok(documentOptional.get().getContent());
+    }
+
+    @PutMapping("/content/{id}")
+    public ResponseEntity<String> setDocumentContent(@PathVariable("id") final int id, @RequestBody String content, @RequestHeader("Authorization") String authHeader) {
+        if (!TokenUtility.validateAuthHeader(authHeader)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        User user = TokenUtility.getUserFromHeader(authHeader, userService);
+        documentService.setDocumentContent(id, content, user);
+        return ResponseEntity.ok(content);
     }
 
     /**
@@ -98,8 +127,13 @@ public class DocumentController {
      */
     @PostMapping
     public ResponseEntity<Document> addDocument(@Valid @RequestBody final Document document, @RequestHeader("Authorization") String authHeader) {
+        System.out.println("Document content: " + document.getContent());
         if (!TokenUtility.validateAuthHeader(authHeader)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         document.setOwner(TokenUtility.getUserFromHeader(authHeader, userService));
+        String format = "yyyy-MM-dd";
+        DateFormat df = new java.text.SimpleDateFormat(format);
+        Date now = new Date();
+        document.setDocDate(df.format(now));
         final Document created = documentService.addDocument(document);
         return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
@@ -115,6 +149,11 @@ public class DocumentController {
     public ResponseEntity<Document> editDocument(@Valid @RequestBody final Document document, @RequestHeader("Authorization") String authHeader) {
         if (!TokenUtility.validateAuthHeader(authHeader)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         document.setOwner(TokenUtility.getUserFromHeader(authHeader, userService));
+        if (document.getContent() == null) {
+            System.err.println("Document content is null");
+        } else {
+            System.out.println("Document content: " + document.getContent());
+        }
         final Document edited = documentService.editDocument(document);
         if (edited == null) return ResponseEntity.notFound().build();
         else return ResponseEntity.ok(edited);
@@ -135,7 +174,7 @@ public class DocumentController {
     }
 
     /**
-     * Get all documents shared with users (ownend by me)
+     * Get all documents shared with users (owned by me)
      *
      * @param authHeader Authorization Header with access token
      * @return List of shared documents

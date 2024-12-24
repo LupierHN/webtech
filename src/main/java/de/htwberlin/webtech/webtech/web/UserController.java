@@ -133,6 +133,7 @@ public class UserController {
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
+        if (TokenUtility.getUserFromHeader(authHeader, userService) == null) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         final Token newToken = TokenUtility.renewToken(token, accessToken);
         if (newToken == null) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         else return new ResponseEntity<>(newToken, HttpStatus.OK);

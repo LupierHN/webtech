@@ -21,6 +21,8 @@ public class Document {
     private String name;
     private String path;
     private String docType;
+    @JsonIgnore
+    @Column(length=10485760)
     private String content;
     private String docDate;
 
@@ -28,7 +30,7 @@ public class Document {
     @JoinColumn(name = "uId", referencedColumnName = "uId")
     private User owner;
 
-//    @JsonIgnore
+    @JsonIgnore
     @ManyToMany(mappedBy = "sharedDocuments")
     private Set<User> sharedWith;
 }
