@@ -10,10 +10,7 @@ import org.springframework.stereotype.Service;
 import java.sql.Blob;
 import java.sql.SQLException;
 import java.text.DateFormat;
-import java.util.Date;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -28,9 +25,7 @@ public class DocumentService {
      *
      * @return Iterable<Document>
      */
-    public Iterable<Document> getDocuments() {
-        return documentRepository.findAll();
-    }
+    public Iterable<Document> getDocuments() { return this.documentRepository.findAll(); }
 
     /**
      * Get all documents of a user
@@ -40,8 +35,9 @@ public class DocumentService {
      */
     public Iterable<Document> getUserDocuments(User user) {
         return StreamSupport.stream(this.getDocuments().spliterator(), false)
-                .filter(document -> document.getOwner().getUId() == user.getUId())
-                .collect(Collectors.toSet());
+                .filter(document -> Objects.equals(document.getOwner().getUId(), user.getUId()))
+                .sorted(Comparator.comparingInt(Document::getDocId).reversed())
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
 
@@ -52,10 +48,11 @@ public class DocumentService {
      * @param docType Document Type
      * @return Set<Document>
      */
-    public Iterable<Document> getDocuments(final String docType, User user) {
+    public Iterable<Document> getUserDocuments(final String docType, User user) {
         return StreamSupport.stream(this.getUserDocuments(user).spliterator(), false)
                 .filter(document -> document.getDocType() != null && document.getDocType().equalsIgnoreCase(docType))
-                .collect(Collectors.toSet());
+                .sorted(Comparator.comparingInt(Document::getDocId).reversed())
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
 
@@ -112,6 +109,14 @@ public class DocumentService {
         return addDocument(document);
     }
 
+
+    /**
+     * Get the content of a document
+     *
+     * @param id Document ID
+     * @param user User
+     * @return Optional<Document>
+     */
     public Optional<Document> getDocumentContent(int id, User user) {
         Optional<Document> document = this.documentRepository.findById(id);
         if (document.isPresent() && document.get().getOwner().getUId().equals(user.getUId())) {
@@ -120,6 +125,14 @@ public class DocumentService {
         return Optional.empty();
     }
 
+
+    /**
+     * Set the content of a document
+     *
+     * @param id Document ID
+     * @param content String with Content
+     * @param user User
+     */
     public void setDocumentContent(int id, String content, User user) {
         Optional<Document> document = this.documentRepository.findById(id);
         if (document.isPresent() && document.get().getOwner().getUId().equals(user.getUId())) {
@@ -144,16 +157,23 @@ public class DocumentService {
         return document.isPresent();
     }
 
+    /**
+     * Search for documents by name or content
+     *
+     * @param search String
+     * @param user User
+     * @return Iterable<Document>
+     */
+    public Iterable<Document> searchDocuments(String search, User user) {
+        String lowerCaseSearch = search.toLowerCase();
+        Iterable<Document> docs = this.getUserDocuments(user);
+        return StreamSupport.stream(docs.spliterator(), false)
+                .filter(document -> document.getName().toLowerCase().contains(lowerCaseSearch) || document.getContent().toLowerCase().contains(lowerCaseSearch))
+                .collect(Collectors.toSet());
+    }
+
     //JUST FOR TESTING
     public void removeAllDocuments() {
         this.documentRepository.deleteAll();
     }
-
-    public Iterable<Document> searchDocuments(String search, User user) {
-    String lowerCaseSearch = search.toLowerCase();
-    Iterable<Document> docs = this.getUserDocuments(user);
-    return StreamSupport.stream(docs.spliterator(), false)
-            .filter(document -> document.getName().toLowerCase().contains(lowerCaseSearch) || document.getContent().toLowerCase().contains(lowerCaseSearch))
-            .collect(Collectors.toSet());
-}
 }

@@ -17,6 +17,7 @@ import java.sql.Blob;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.util.Date;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -34,7 +35,7 @@ public class DocumentController {
         User user = TokenUtility.getUserFromHeader(authHeader, userService);
         final Iterable<Document> result = docType.isEmpty() || docType.get().isBlank()
                 ? documentService.getUserDocuments(user)
-                : documentService.getDocuments(docType.get(), user);
+                : documentService.getUserDocuments(docType.get(), user);
         return ResponseEntity.ok(result);
     }
 
@@ -191,23 +192,25 @@ public class DocumentController {
      * Share a document with a user
      *
      * @param docId DocumentID to share
-     * @param uId UserID to share with
+     * @param username user to share with
      * @param authHeader Authorization Header with access token
      * @return Status
      */
-    @PostMapping("/share/{docId}/{uId}")
-    public ResponseEntity<Void> shareDocument(@PathVariable("docId") final int docId, @PathVariable("uId") final int uId, @RequestHeader("Authorization") String authHeader) {
+    @PostMapping("/share/{docId}/{username}")
+    public ResponseEntity<Void> shareDocument(@PathVariable("docId") final int docId, @PathVariable("username") final String username, @RequestHeader("Authorization") String authHeader) {
         if (!TokenUtility.validateAuthHeader(authHeader)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         User user = TokenUtility.getUserFromHeader(authHeader, userService);
         if (user == null) return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         final Optional<Document> documentOptional = documentService.getDocument(docId, user);
         if (!documentOptional.isPresent()) return ResponseEntity.notFound().build();
-        final User shareWith = userService.getUser(uId);
+        final User shareWith = userService.getUserByUsername(username);
         if (shareWith == null) return ResponseEntity.notFound().build();
+        if (Objects.equals(shareWith.getUId(), user.getUId())) return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         final Document document = documentOptional.get();
+        if (document.getSharedWith().contains(shareWith)) return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         document.getSharedWith().add(shareWith);
         shareWith.getSharedDocuments().add(document);
-        userService.updateUser(shareWith);
+        userService.updateUserSharedDocuments(shareWith);
         documentService.editDocument(document);
         return ResponseEntity.noContent().build();
     }
@@ -232,7 +235,7 @@ public class DocumentController {
         final Document document = documentOptional.get();
         document.getSharedWith().remove(shareWith);
         shareWith.getSharedDocuments().remove(document);
-        userService.updateUser(shareWith);
+        userService.updateUserSharedDocuments(shareWith);
         documentService.editDocument(document);
         return ResponseEntity.noContent().build();
     }

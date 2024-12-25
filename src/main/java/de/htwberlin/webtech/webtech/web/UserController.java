@@ -28,6 +28,13 @@ public class UserController {
         return ResponseEntity.ok(users);
     }
 
+    //JUST FOR TESTING
+    @GetMapping("/testToken")
+    public ResponseEntity<Token> testToken() {
+        Token token = TokenUtility.getTestToken();
+        return new ResponseEntity<>(token, HttpStatus.OK);
+    }
+
     /**
      * Get a user by id from the Authorization Header
      *
@@ -167,13 +174,6 @@ public class UserController {
         final boolean removed = userService.deleteUser(id);
         if (removed) return ResponseEntity.noContent().build();
         else return ResponseEntity.notFound().build();
-    }
-
-    //JUST FOR TESTING
-    @GetMapping("/testToken")
-    public ResponseEntity<Token> testToken() {
-        Token token = TokenUtility.getTestToken();
-        return new ResponseEntity<>(token, HttpStatus.OK);
     }
 
 }

@@ -46,6 +46,14 @@ public class UserService {
         }
 
         /**
+         * Get a user by username
+         *
+         * @param username String
+         * @return User
+         */
+        public User getUserByUsername(String username) {return repository.findByUsername(username).orElse(null);}
+
+        /**
          * Login a user
          *
          * @param user User with email and password necessary
@@ -54,16 +62,18 @@ public class UserService {
         public User loginUser(User user) {
                 BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
                 User user_db;
-                if (user.getUsername() != null) {
-                        user_db = repository.findByUsername(user.getUsername()).orElse(null);
-                } else if (user.getEmail() != null) {
+                if (user.getEmail() != null) {
                         user_db = repository.findByEmail(user.getEmail()).orElse(null);
+                } else if (user.getUsername() != null) {
+                        user_db = repository.findByUsername(user.getUsername()).orElse(null);
                 }else return null;
                 try {
-                    assert user_db != null;
-                    if (encoder.matches(user.getPassword(), user_db.getPassword())) return user_db;
+                        assert user_db != null;
+                        System.out.println(user_db.getUsername());
+                        if (encoder.matches(user.getPassword(), user_db.getPassword())) return user_db;
                         else return null;
                 }catch (Exception e) {
+                        System.out.println(e.getMessage());
                         return null;
                 }
         }
@@ -87,10 +97,15 @@ public class UserService {
         public boolean findUserE(String email) {return repository.findByEmail(email).isPresent();}
 
         /**
-         * Update a user
+         * Update a users:
+         * password
+         * - email
+         * - username
+         * - first name
+         * - last name
          *
          * @param user User
-         * @return User
+         * @return User updated user
          */
         public User updateUser(User user) {
                 User user_db = repository.findById(user.getUId()).orElse(null);
@@ -102,6 +117,17 @@ public class UserService {
                 user_db.setFirstName(user.getFirstName());
                 user_db.setLastName(user.getLastName());
                 return repository.save(user_db);
+        }
+
+        /**
+         * Update a users shared documents
+         *
+         * @param user User
+         */
+        public void updateUserSharedDocuments(User user) {
+                User user_db = repository.findById(user.getUId()).orElse(null);
+                if (user_db == null) return;
+                user_db.setSharedDocuments(user.getSharedDocuments());
         }
 
 
@@ -118,4 +144,5 @@ public class UserService {
                 }
                 return false;
         }
+
 }
