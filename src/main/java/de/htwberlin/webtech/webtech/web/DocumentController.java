@@ -81,7 +81,6 @@ public class DocumentController {
         if (!TokenUtility.validateAuthHeader(authHeader)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         User user = TokenUtility.getUserFromHeader(authHeader, userService);
         final Optional<Document> documentOptional = documentService.getDocumentContent(id, user);
-        if (documentOptional.isPresent()) System.out.println("Document content: " + documentOptional.get().getContent());
         if (!documentOptional.isPresent()) return ResponseEntity.notFound().build();
         else return ResponseEntity.ok(documentOptional.get().getContent());
     }
@@ -97,10 +96,17 @@ public class DocumentController {
     /**
      * Find a document by name or contentsnippet
      *
-     * @param search String
+     * @param search String as JSON-Body
      * @param authHeader Authorization Header with access token
      * @return List of documents
      */
+    @GetMapping("/search")
+    public ResponseEntity<Iterable<Document>> searchDocuments(@RequestParam("search") final String search, @RequestHeader("Authorization") String authHeader) {
+        if (!TokenUtility.validateAuthHeader(authHeader)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        User user = TokenUtility.getUserFromHeader(authHeader, userService);
+        final Iterable<Document> result = documentService.searchDocuments(search, user);
+        return ResponseEntity.ok(result);
+    }
 
     /**
      * Delete a document by id
@@ -127,7 +133,6 @@ public class DocumentController {
      */
     @PostMapping
     public ResponseEntity<Document> addDocument(@Valid @RequestBody final Document document, @RequestHeader("Authorization") String authHeader) {
-        System.out.println("Document content: " + document.getContent());
         if (!TokenUtility.validateAuthHeader(authHeader)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         document.setOwner(TokenUtility.getUserFromHeader(authHeader, userService));
         String format = "yyyy-MM-dd";
@@ -149,11 +154,6 @@ public class DocumentController {
     public ResponseEntity<Document> editDocument(@Valid @RequestBody final Document document, @RequestHeader("Authorization") String authHeader) {
         if (!TokenUtility.validateAuthHeader(authHeader)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         document.setOwner(TokenUtility.getUserFromHeader(authHeader, userService));
-        if (document.getContent() == null) {
-            System.err.println("Document content is null");
-        } else {
-            System.out.println("Document content: " + document.getContent());
-        }
         final Document edited = documentService.editDocument(document);
         if (edited == null) return ResponseEntity.notFound().build();
         else return ResponseEntity.ok(edited);

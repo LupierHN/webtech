@@ -107,6 +107,8 @@ public class DocumentService {
      */
     public Document editDocument(final Document document) {
         if (!this.documentRepository.existsById(document.getDocId())) return null;
+        Optional<Document> db_document = this.documentRepository.findById(document.getDocId());
+        db_document.ifPresent(value -> document.setContent(value.getContent()));
         return addDocument(document);
     }
 
@@ -146,4 +148,12 @@ public class DocumentService {
     public void removeAllDocuments() {
         this.documentRepository.deleteAll();
     }
+
+    public Iterable<Document> searchDocuments(String search, User user) {
+    String lowerCaseSearch = search.toLowerCase();
+    Iterable<Document> docs = this.getUserDocuments(user);
+    return StreamSupport.stream(docs.spliterator(), false)
+            .filter(document -> document.getName().toLowerCase().contains(lowerCaseSearch) || document.getContent().toLowerCase().contains(lowerCaseSearch))
+            .collect(Collectors.toSet());
+}
 }
