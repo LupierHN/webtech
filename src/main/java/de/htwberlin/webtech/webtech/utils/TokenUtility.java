@@ -89,7 +89,35 @@ public class TokenUtility {
     }
 
     /**
-     * Returns the User ID of the Token
+     * Returns the User of the Token
+     *
+     * @param token Token
+     * @param userService UserService
+     * @return user User
+     */
+    public static User getUser(Token token, UserService userService) {
+        try {
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(System.getenv("JWT_SECRET").getBytes(StandardCharsets.UTF_8))
+                    .build()
+                    .parseClaimsJws(token.getToken())
+                    .getBody();
+            Integer uid = claims.get("uid", Integer.class);
+            if (uid == null) {
+                String username = claims.getSubject();
+                if (username == null) {
+                    return null;
+                }
+                return userService.getUserByUsername(username);
+            }
+            return userService.getUser(uid);
+        } catch (JwtException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Returns the User of the Token from the Authorization Header
      *
      * @param header Authorization Header
      * @param userService UserService
@@ -97,21 +125,8 @@ public class TokenUtility {
      */
     public static User getUserFromHeader(String header, UserService userService) {
     Token token = TokenUtility.getTokenFromHeader(header);
-    try {
         assert token != null;
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(System.getenv("JWT_SECRET").getBytes(StandardCharsets.UTF_8))
-                .build()
-                .parseClaimsJws(token.getToken())
-                .getBody();
-        Integer uid = claims.get("uid", Integer.class);
-        if (uid == null) {
-            return null;
-        }
-        return userService.getUser(uid);
-    } catch (JwtException e) {
-        return null;
-    }
+        return getUser(token, userService);
 }
 
     /**
@@ -160,6 +175,7 @@ public class TokenUtility {
                     .build()
                     .parseClaimsJws(token.getToken())
                     .getBody();
+
             if (claims.getSubject().equals(accessClaims.getSubject())) {
                 return new Token(Jwts.builder()
                         .setSubject(accessClaims.getSubject())
@@ -169,7 +185,9 @@ public class TokenUtility {
                         .setExpiration(new Date(now.getTime() + 600000))
                         .signWith(key, SignatureAlgorithm.HS512)
                         .compact());
-            }else return null;
+            } else {
+                return null;
+            }
         } catch (Exception e) {
             return null;
         }

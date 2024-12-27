@@ -134,14 +134,8 @@ public class UserController {
      */
     @PostMapping("/renewToken")
     public ResponseEntity<Token> renewToken(@RequestBody final Token token, @RequestHeader("Authorization") String authHeader) {
-        Token accessToken;
-        try {
-            accessToken = new Token(authHeader.substring(7));
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-        if (TokenUtility.getUserFromHeader(authHeader, userService) == null) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-        final Token newToken = TokenUtility.renewToken(token, accessToken);
+        if (TokenUtility.getUser(token, userService) == null) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        final Token newToken = TokenUtility.renewToken(token, TokenUtility.getTokenFromHeader(authHeader));
         if (newToken == null) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         else return new ResponseEntity<>(newToken, HttpStatus.OK);
     }
