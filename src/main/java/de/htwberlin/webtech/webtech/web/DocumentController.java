@@ -161,12 +161,12 @@ public class DocumentController {
     }
 
     /**
-     * Get all documents shared with users (shared by me)
+     * Get all shared documents of a user (shared with me)
      *
      * @param authHeader Authorization Header with access token
      * @return List of shared documents
      */
-    @GetMapping("/shared/by")
+    @GetMapping("/shared/with")
     public ResponseEntity<Set<Document>> getSharedDocuments(@RequestHeader("Authorization") String authHeader) {
         if (!TokenUtility.validateAuthHeader(authHeader)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         User user = TokenUtility.getUserFromHeader(authHeader, userService);
@@ -175,13 +175,14 @@ public class DocumentController {
     }
 
 
+
     /**
-     * Get all shared documents of a user (shared with me)
+     * Get all documents shared with users (shared by me)
      *
      * @param authHeader Authorization Header with access token
      * @return List of shared documents
      */
-    @GetMapping("/shared/with")
+    @GetMapping("/shared/by")
     public ResponseEntity<Iterable<Document>> getSharedWithDocuments(@RequestHeader("Authorization") String authHeader) {
         if (!TokenUtility.validateAuthHeader(authHeader)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         User user = TokenUtility.getUserFromHeader(authHeader, userService);
