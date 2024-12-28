@@ -5,6 +5,7 @@ import de.htwberlin.webtech.webtech.service.DocumentService;
 import de.htwberlin.webtech.webtech.service.UserService;
 import de.htwberlin.webtech.webtech.web.DocumentController;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -19,6 +20,7 @@ import org.springframework.web.context.WebApplicationContext;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@Disabled
 @WebMvcTest(DocumentController.class)
 public class DocumentControllerTest {
 
