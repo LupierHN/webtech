@@ -1,13 +1,13 @@
 package de.htwberlin.webtech.webtech.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.util.Set;
 
 @Entity
 @Getter
@@ -21,6 +21,16 @@ public class Document {
     private String name;
     private String path;
     private String docType;
+    @JsonIgnore
+    @Column(length=10485760)
+    private String content;
     private String docDate;
-}
 
+    @ManyToOne
+    @JoinColumn(name = "uId", referencedColumnName = "uId")
+    private User owner;
+
+    @JsonIgnore
+    @ManyToMany(mappedBy = "sharedDocuments")
+    private Set<User> sharedWith;
+}
