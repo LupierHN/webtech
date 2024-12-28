@@ -32,5 +32,5 @@ public class Document {
 
     @JsonIgnore
     @ManyToMany(mappedBy = "sharedDocuments")
-    private Set<User> sharedWith;
+    private Set<User> sharedWith; // all users this document is shared with
 }

@@ -68,6 +68,8 @@ public class DocumentService {
         if (document.isPresent()) {
             if (Objects.equals(document.get().getOwner().getUId(), user.getUId())) {
                 return document;
+            } else if (user.getSharedDocuments().contains(document.get())) {
+                return document;
             }
         }
         return Optional.empty();
@@ -119,7 +121,7 @@ public class DocumentService {
      */
     public Optional<Document> getDocumentContent(int id, User user) {
         Optional<Document> document = this.documentRepository.findById(id);
-        if (document.isPresent() && document.get().getOwner().getUId().equals(user.getUId())) {
+        if (document.isPresent() && (document.get().getOwner().getUId().equals(user.getUId()) || user.getSharedDocuments().contains(document.get()))) {
             return document;
         }
         return Optional.empty();
@@ -135,7 +137,7 @@ public class DocumentService {
      */
     public void setDocumentContent(int id, String content, User user) {
         Optional<Document> document = this.documentRepository.findById(id);
-        if (document.isPresent() && document.get().getOwner().getUId().equals(user.getUId())) {
+        if (document.isPresent() && (document.get().getOwner().getUId().equals(user.getUId()) || user.getSharedDocuments().contains(document.get()))) {
             Document doc = document.get();
             doc.setContent(content);
             this.documentRepository.save(doc);
@@ -167,9 +169,60 @@ public class DocumentService {
     public Iterable<Document> searchDocuments(String search, User user) {
         String lowerCaseSearch = search.toLowerCase();
         Iterable<Document> docs = this.getUserDocuments(user);
-        return StreamSupport.stream(docs.spliterator(), false)
+        Iterable<Document> sharedDocs = user.getSharedDocuments();
+        Set<Document> found = StreamSupport.stream(docs.spliterator(), false)
                 .filter(document -> document.getName().toLowerCase().contains(lowerCaseSearch) || document.getContent().toLowerCase().contains(lowerCaseSearch))
                 .collect(Collectors.toSet());
+        Set<Document> foundShared = StreamSupport.stream(sharedDocs.spliterator(), false)
+                .filter(document -> document.getName().toLowerCase().contains(lowerCaseSearch) || document.getContent().toLowerCase().contains(lowerCaseSearch))
+                .collect(Collectors.toSet());
+        found.addAll(foundShared);
+        return found;
+    }
+
+    /**
+     * Censor the owner but keep the username
+     *
+     * @param documents Iterable<Document>
+     * @return Iterable<Document>
+     */
+    public Iterable<Document> censorDocumentOwner(Iterable<Document> documents) {
+        return StreamSupport.stream(documents.spliterator(), false)
+            .map(document -> {
+                Document doc = new Document();
+                doc.setDocId(document.getDocId());
+                doc.setName(document.getName());
+                doc.setPath(document.getPath());
+                doc.setDocType(document.getDocType());
+                doc.setDocDate(document.getDocDate());
+                doc.setContent(document.getContent());
+                User owner = new User();
+                owner.setUsername(document.getOwner().getUsername());
+                doc.setOwner(owner);
+                return doc;
+            })
+            .sorted(Comparator.comparingInt(Document::getDocId).reversed())
+            .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    /**
+     * Censor the owner but keep the username
+     *
+     * @param document Document
+     * @return Document
+     */
+    public Document censorDocumentOwner(Document document) {
+        Document doc = new Document();
+        doc.setDocId(document.getDocId());
+        doc.setName(document.getName());
+        doc.setPath(document.getPath());
+        doc.setDocType(document.getDocType());
+        doc.setDocDate(document.getDocDate());
+        doc.setContent(document.getContent());
+        User owner = new User();
+        owner.setUsername(document.getOwner().getUsername());
+        doc.setOwner(owner);
+        return doc;
     }
 
     //JUST FOR TESTING
