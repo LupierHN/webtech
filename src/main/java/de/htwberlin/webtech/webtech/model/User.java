@@ -31,5 +31,5 @@ public class User {
             joinColumns = {@JoinColumn(name = "uId")},
             inverseJoinColumns =  { @JoinColumn(name = "docId") }
     )
-    Set<Document> sharedDocuments;
+    Set<Document> sharedDocuments; // all documents shared with this user
 }

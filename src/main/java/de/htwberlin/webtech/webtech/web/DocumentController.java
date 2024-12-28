@@ -20,6 +20,7 @@ import java.util.Date;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Controller
 @AllArgsConstructor
@@ -57,7 +58,7 @@ public class DocumentController {
         if (!TokenUtility.validateAuthHeader(authHeader)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         User user = TokenUtility.getUserFromHeader(authHeader, userService);
         if (user == null) return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        final Iterable<Document> result = documentService.getUserDocuments(user);
+        final Iterable<Document> result = documentService.censorDocumentOwner(documentService.getUserDocuments(user));
         return ResponseEntity.ok(result);
     }
 
@@ -74,7 +75,7 @@ public class DocumentController {
         User user = TokenUtility.getUserFromHeader(authHeader, userService);
         final Optional<Document> documentOptional = documentService.getDocument(id, user);
         if (!documentOptional.isPresent()) return ResponseEntity.notFound().build();
-        else return ResponseEntity.ok(documentOptional.get());
+        else return ResponseEntity.ok(documentService.censorDocumentOwner(documentOptional.get()));
     }
 
     @GetMapping("/content/{id}")
@@ -105,7 +106,7 @@ public class DocumentController {
     public ResponseEntity<Iterable<Document>> searchDocuments(@RequestParam("search") final String search, @RequestHeader("Authorization") String authHeader) {
         if (!TokenUtility.validateAuthHeader(authHeader)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         User user = TokenUtility.getUserFromHeader(authHeader, userService);
-        final Iterable<Document> result = documentService.searchDocuments(search, user);
+        final Iterable<Document> result = documentService.censorDocumentOwner(documentService.searchDocuments(search, user));
         return ResponseEntity.ok(result);
     }
 
@@ -141,7 +142,7 @@ public class DocumentController {
         Date now = new Date();
         document.setDocDate(df.format(now));
         final Document created = documentService.addDocument(document);
-        return new ResponseEntity<>(created, HttpStatus.CREATED);
+        return new ResponseEntity<>(documentService.censorDocumentOwner(created), HttpStatus.CREATED);
     }
 
     /**
@@ -157,7 +158,7 @@ public class DocumentController {
         document.setOwner(TokenUtility.getUserFromHeader(authHeader, userService));
         final Document edited = documentService.editDocument(document);
         if (edited == null) return ResponseEntity.notFound().build();
-        else return ResponseEntity.ok(edited);
+        else return ResponseEntity.ok(documentService.censorDocumentOwner(edited));
     }
 
     /**
@@ -167,11 +168,11 @@ public class DocumentController {
      * @return List of shared documents
      */
     @GetMapping("/shared/with")
-    public ResponseEntity<Set<Document>> getSharedDocuments(@RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<Iterable<Document>> getSharedDocuments(@RequestHeader("Authorization") String authHeader) {
         if (!TokenUtility.validateAuthHeader(authHeader)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         User user = TokenUtility.getUserFromHeader(authHeader, userService);
         if (user == null) return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        return ResponseEntity.ok(user.getSharedDocuments());
+        return ResponseEntity.ok(documentService.censorDocumentOwner(user.getSharedDocuments()));
     }
 
 
@@ -187,7 +188,7 @@ public class DocumentController {
         if (!TokenUtility.validateAuthHeader(authHeader)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         User user = TokenUtility.getUserFromHeader(authHeader, userService);
         if (user == null) return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        return ResponseEntity.ok(documentService.getSharedDocuments(user));
+        return ResponseEntity.ok(documentService.censorDocumentOwner(documentService.getSharedDocuments(user)));
     }
 
     /**
