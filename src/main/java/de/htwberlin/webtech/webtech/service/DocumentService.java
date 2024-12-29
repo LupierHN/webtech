@@ -89,6 +89,25 @@ public class DocumentService {
     }
 
     /**
+     * Get all Users a document is shared with
+     *
+     * @param document Document
+     * @return Set<User> Censored Passwords and mail
+     */
+    public Set<User> getSharedWith(Document document) {
+        return document.getSharedWith().stream()
+                .map(user -> {
+                    User u = new User();
+                    u.setUId(user.getUId());
+                    u.setUsername(user.getUsername());
+                    u.setFirstName(user.getFirstName());
+                    u.setLastName(user.getLastName());
+                    return u;
+                })
+                .collect(Collectors.toSet());
+    }
+
+    /**
      * Add a document
      *
      * @param document

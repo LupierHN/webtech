@@ -43,7 +43,7 @@ public class TokenUtility {
     return new Token(Jwts.builder()
             .setSubject(user.getUsername())
             .claim("tokenType", "access")
-            .claim("uid", user.getUId())
+            .claim("uId", user.getUId())
             .setIssuedAt(now)
             .setExpiration(new Date(now.getTime() + 600000))
             .signWith(key, SignatureAlgorithm.HS512)
@@ -102,15 +102,15 @@ public class TokenUtility {
                     .build()
                     .parseClaimsJws(token.getToken())
                     .getBody();
-            Integer uid = claims.get("uid", Integer.class);
-            if (uid == null) {
+            Integer uId = claims.get("uId", Integer.class);
+            if (uId == null) {
                 String username = claims.getSubject();
                 if (username == null) {
                     return null;
                 }
                 return userService.getUserByUsername(username);
             }
-            return userService.getUser(uid);
+            return userService.getUser(uId);
         } catch (JwtException e) {
             return null;
         }
@@ -180,7 +180,7 @@ public class TokenUtility {
                 return new Token(Jwts.builder()
                         .setSubject(accessClaims.getSubject())
                         .claim("tokenType", "access")
-                        .claim("uid", accessClaims.get("uid"))
+                        .claim("uId", accessClaims.get("uId"))
                         .setIssuedAt(now)
                         .setExpiration(new Date(now.getTime() + 600000))
                         .signWith(key, SignatureAlgorithm.HS512)
@@ -253,7 +253,7 @@ public class TokenUtility {
         return new Token(Jwts.builder()
                 .setSubject(user.getUsername())
                 .claim("tokenType", "access")
-                .claim("uid", user.getUId())
+                .claim("uId", user.getUId())
                 .setIssuedAt(now)
                 .setExpiration(new Date(now.getTime()))
                 .signWith(key, SignatureAlgorithm.HS512)
