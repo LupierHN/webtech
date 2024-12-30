@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.htwberlin.webtech.webtech.model.Document;
 import de.htwberlin.webtech.webtech.model.User;
 import de.htwberlin.webtech.webtech.service.DocumentService;
+import de.htwberlin.webtech.webtech.service.NotificationService;
 import de.htwberlin.webtech.webtech.service.UserService;
 import de.htwberlin.webtech.webtech.utils.TokenUtility;
 import jakarta.validation.Valid;
@@ -30,6 +31,7 @@ import java.util.stream.Collectors;
 public class DocumentController {
     private final DocumentService documentService;
     private final UserService userService;
+    private final NotificationService notificationService;
 
     //JUST FOR TESTING
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
@@ -61,6 +63,9 @@ public class DocumentController {
         User user = TokenUtility.getUserFromHeader(authHeader, userService);
         if (user == null) return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         final Iterable<Document> result = documentService.censorDocumentOwner(documentService.getUserDocuments(user));
+        if (notificationService.hasNewNotifications(user)) {
+            return ResponseEntity.accepted().body(result);
+        }
         return ResponseEntity.ok(result);
     }
 
@@ -242,6 +247,7 @@ public class DocumentController {
         shareWith.getSharedDocuments().add(document);
         userService.updateUserSharedDocuments(shareWith);
         documentService.editDocument(document);
+        notificationService.createNotification("<b>" + user.getUsername() + "</b> shared a document with you: " + document.getName(), shareWith, document);
         return ResponseEntity.noContent().build();
     }
 

@@ -2,6 +2,7 @@ package de.htwberlin.webtech.webtech.web;
 
 import de.htwberlin.webtech.webtech.model.Token;
 import de.htwberlin.webtech.webtech.model.User;
+import de.htwberlin.webtech.webtech.service.NotificationService;
 import de.htwberlin.webtech.webtech.service.UserService;
 import de.htwberlin.webtech.webtech.utils.TokenUtility;
 import jakarta.validation.Valid;
@@ -20,6 +21,7 @@ import java.util.List;
 @RequestMapping("/api/auth")
 public class UserController {
     private final UserService userService;
+    private final NotificationService notificationService;
 
     //JUST FOR TESTING
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
@@ -45,6 +47,7 @@ public class UserController {
         if (!TokenUtility.validateAuthHeader(authHeader)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         final User user = TokenUtility.getUserFromHeader(authHeader, userService);
         if (user == null) return ResponseEntity.notFound().build();
+        else if (notificationService.hasNewNotifications(user)) return ResponseEntity.accepted().body(user);
         else return ResponseEntity.ok(user);
     }
 
@@ -137,6 +140,7 @@ public class UserController {
         if (TokenUtility.getUser(token, userService) == null) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         final Token newToken = TokenUtility.renewToken(token, TokenUtility.getTokenFromHeader(authHeader));
         if (newToken == null) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        else if (notificationService.hasNewNotifications(TokenUtility.getUser(token, userService))) return new ResponseEntity<>(newToken, HttpStatus.ACCEPTED);
         else return new ResponseEntity<>(newToken, HttpStatus.OK);
     }
 
