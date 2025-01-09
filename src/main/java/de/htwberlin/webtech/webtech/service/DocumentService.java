@@ -110,8 +110,8 @@ public class DocumentService {
     /**
      * Add a document
      *
-     * @param document
-     * @return
+     * @param document Document
+     * @return Document
      */
     public Document addDocument(final Document document) {
         return this.documentRepository.save(document);

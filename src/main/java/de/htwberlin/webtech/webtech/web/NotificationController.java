@@ -27,50 +27,58 @@ public class NotificationController {
 
 
     /**
-     * Get the latest notification for a user wich are not read
+     * Get all notifications for a user
      *
-     * @param authHeader
+     * @param authHeader String
      * @return List<Notification>
      */
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<Notification>> getNotifications(@RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<List<Notification>> getAllNotifications(@RequestHeader("Authorization") String authHeader) {
         if (!TokenUtility.validateAuthHeader(authHeader)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         final User user = TokenUtility.getUserFromHeader(authHeader, userService);
         if (user == null) return ResponseEntity.notFound().build();
-        final List<Notification> notifications = notificationService.getLatestNotification(user);
+        final List<Notification> notifications = notificationService.getNotifications(user);
         return ResponseEntity.ok(notifications);
     }
 
     /**
-     * Mark a notification as read
+     * Read all notifications for a user
      *
-     * @param authHeader Authorization Header
-     * @param notification Notification
+     * @param authHeader String
      * @return ResponseEntity
      */
-    @PutMapping(value = "/read")
-    public ResponseEntity<Void> markNotificationAsRead(@RequestHeader("Authorization") String authHeader, @RequestBody Notification notification) {
-        if (!TokenUtility.validateAuthHeader(authHeader)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        final User user = TokenUtility.getUserFromHeader(authHeader, userService);
-        if (user == null) return ResponseEntity.notFound().build();
-        if (notificationService.readNotification(notification.getNId())) return ResponseEntity.ok().build();
-        else return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-    }
-
-    /**
-     * Mark all notifications as read
-     *
-     * @param authHeader Authorization Header
-     * @return ResponseEntity
-     */
-    @PutMapping(value = "/readAll")
-    public ResponseEntity<Void> markAllNotificationsAsRead(@RequestHeader("Authorization") String authHeader) {
+    @PutMapping("/read")
+    public ResponseEntity<Void> readAllNotifications(@RequestHeader("Authorization") String authHeader) {
         if (!TokenUtility.validateAuthHeader(authHeader)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         final User user = TokenUtility.getUserFromHeader(authHeader, userService);
         if (user == null) return ResponseEntity.notFound().build();
         notificationService.readNotifications(user);
         return ResponseEntity.ok().build();
     }
+
+    /**
+     * Delete either a single notification or all notifications
+     *
+     * @param authHeader String
+     * @param nId Integer
+     * @return ResponseEntity
+     */
+    @DeleteMapping("/{nId}")
+    public ResponseEntity<Void> deleteNotification(@RequestHeader("Authorization") String authHeader, @PathVariable Integer nId) {
+        if (!TokenUtility.validateAuthHeader(authHeader)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        final User user = TokenUtility.getUserFromHeader(authHeader, userService);
+        if (user == null) return ResponseEntity.notFound().build();
+        if (nId == -1) {
+            notificationService.deleteAllNotifications(user);
+        } else if(nId > 0) {
+            notificationService.deleteNotification(nId);
+        }else{
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok().build();
+    }
+
+
 
 
 

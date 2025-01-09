@@ -53,59 +53,48 @@ public class NotificationService {
     }
 
     /**
-     * Get all notifications
+     * Get all notifications for a user
      *
      * @param user User
      * @return Iterable<Notification>
      */
-    public Iterable<Notification> getNotifications(User user) {
-        return this.notificationRepository.findAllByRecipient(user);
+    public List<Notification> getNotifications(User user) {
+        return this.notificationRepository.findAllByRecipientOrderByTimestampDesc(user);
     }
 
     /**
      * Read notifications
      *
      * @param user User
-     * @return Iterable<Notification>
      */
-    public Iterable<Notification> readNotifications(User user) {
-        Iterable<Notification> notifications = this.notificationRepository.findAllByRecipientAndReadIsFalseOrderByTimestampDesc(user);
+    public void readNotifications(User user) {
+        List<Notification> notifications = this.notificationRepository.findAllByRecipientAndReadIsFalseOrderByTimestampDesc(user);
         notifications.forEach(notification -> {
             notification.setRead(true);
             this.notificationRepository.save(notification);
         });
-        return notifications;
-
     }
 
     /**
      * Read a notification
      *
      * @param nId integer NotificationId
-     * @return boolean
      */
-    public boolean readNotification(int nId) {
-        final Optional<Notification> notification = this.notificationRepository.findById(nId);
-        if (notification.isPresent()) {
-            notification.get().setRead(true);
-            this.notificationRepository.save(notification.get());
-            return true;
-        }
-        return false;
+    public void readNotification(int nId) {
+        Optional<Notification> notification = this.notificationRepository.findById(nId);
+        notification.ifPresent(value -> {
+            value.setRead(true);
+            this.notificationRepository.save(value);
+        });
     }
 
     /**
      * Delete a notification
+     *
      * @param nId integer NotificationId
-     * @return boolean
      */
-    public boolean deleteNotification(int nId) {
-        final Optional<Notification> notification = this.notificationRepository.findById(nId);
-            if (notification.isPresent()) {
-                this.notificationRepository.deleteById(nId);
-                return true;
-            }
-        return false;
+    public void deleteNotification(int nId) {
+        this.notificationRepository.deleteById(nId);
     }
 
     /**
@@ -116,5 +105,14 @@ public class NotificationService {
      */
     public boolean hasNewNotifications(User user) {
         return this.notificationRepository.findAllByRecipientAndReadIsFalseOrderByTimestampDesc(user).iterator().hasNext();
+    }
+
+    /**
+     * Delete all notifications
+     *
+     * @param user User
+     */
+    public void deleteAllNotifications(User user) {
+        this.notificationRepository.deleteAll(this.notificationRepository.findAllByRecipient(user));
     }
 }

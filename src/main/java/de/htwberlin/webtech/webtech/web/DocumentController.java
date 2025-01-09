@@ -128,6 +128,16 @@ public class DocumentController {
     public ResponseEntity<Void> deleteDocument(@PathVariable("id") final int id, @RequestHeader("Authorization") String authHeader) {
         if (!TokenUtility.validateAuthHeader(authHeader)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         User user = TokenUtility.getUserFromHeader(authHeader, userService);
+        final Optional<Document> documentOptional = documentService.getDocument(id, user);
+        if (!documentOptional.isPresent()) return ResponseEntity.notFound().build();
+        final Document document = documentOptional.get();
+        Set<User> sharedWithUsers = document.getSharedWith();
+        for (User sharedUser : sharedWithUsers) {
+            sharedUser.getSharedDocuments().remove(document);
+            userService.updateUserSharedDocuments(sharedUser);
+        }
+        document.getSharedWith().clear();
+        documentService.editDocument(document);
         final boolean removed = documentService.removeDocument(id, user);
         if (removed) return ResponseEntity.noContent().build();
         else return ResponseEntity.notFound().build();
