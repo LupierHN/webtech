@@ -220,16 +220,6 @@ public class DocumentController {
         final Optional<Document> documentOptional = documentService.getDocument(docId, user);
         if (!documentOptional.isPresent()) return ResponseEntity.notFound().build();
         final Set<User> sharedWith = documentService.getSharedWith(documentOptional.get());
-
-        // Log the JSON output for debugging
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            String jsonOutput = objectMapper.writeValueAsString(sharedWith);
-            System.out.println("JSON Output: " + jsonOutput);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-
         return ResponseEntity.ok(sharedWith);
     }
 

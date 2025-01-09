@@ -69,7 +69,6 @@ public class UserService {
                 }else return null;
                 try {
                         assert user_db != null;
-                        System.out.println(user_db.getUsername());
                         if (encoder.matches(user.getPassword(), user_db.getPassword())) return user_db;
                         else return null;
                 }catch (Exception e) {
