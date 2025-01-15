@@ -1,11 +1,10 @@
-package de.htwberlin.webtech.webtech;
+package de.htwberlin.webtech.webtech.web;
 
 import de.htwberlin.webtech.webtech.model.Token;
 import de.htwberlin.webtech.webtech.model.User;
 import de.htwberlin.webtech.webtech.service.NotificationService;
 import de.htwberlin.webtech.webtech.service.UserService;
 import de.htwberlin.webtech.webtech.utils.TokenUtility;
-import de.htwberlin.webtech.webtech.web.UserController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

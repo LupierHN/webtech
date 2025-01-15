@@ -1,9 +1,8 @@
-package de.htwberlin.webtech.webtech;
+package de.htwberlin.webtech.webtech.service;
 
 import de.htwberlin.webtech.webtech.model.Document;
 import de.htwberlin.webtech.webtech.model.User;
 import de.htwberlin.webtech.webtech.persistence.DocumentRepository;
-import de.htwberlin.webtech.webtech.service.DocumentService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
