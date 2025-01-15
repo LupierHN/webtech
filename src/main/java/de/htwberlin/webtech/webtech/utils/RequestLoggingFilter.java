@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
-@Component
+//@Component
 @Order(1) // Ensure this filter runs before the security filter
 public class RequestLoggingFilter implements Filter {
 
