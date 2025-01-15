@@ -23,20 +23,6 @@ public class UserController {
     private final UserService userService;
     private final NotificationService notificationService;
 
-    //JUST FOR TESTING
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Iterable<User>> getUsers() {
-        final Iterable<User> users = userService.getUsers();
-        return ResponseEntity.ok(users);
-    }
-
-    //JUST FOR TESTING
-    @GetMapping("/testToken")
-    public ResponseEntity<Token> testToken() {
-        Token token = TokenUtility.getTestToken();
-        return new ResponseEntity<>(token, HttpStatus.OK);
-    }
-
     /**
      * Get a user by id from the Authorization Header
      *

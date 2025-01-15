@@ -22,9 +22,7 @@ import java.util.List;
 @RequestMapping("/api/notifications")
 public class NotificationController {
     private final UserService userService;
-    private final DocumentController documentController;
     private final NotificationService notificationService;
-
 
     /**
      * Get all notifications for a user
@@ -77,11 +75,4 @@ public class NotificationController {
         }
         return ResponseEntity.ok().build();
     }
-
-
-
-
-
-
-
 }

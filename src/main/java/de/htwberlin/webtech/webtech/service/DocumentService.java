@@ -243,9 +243,4 @@ public class DocumentService {
         doc.setOwner(owner);
         return doc;
     }
-
-    //JUST FOR TESTING
-    public void removeAllDocuments() {
-        this.documentRepository.deleteAll();
-    }
 }

@@ -33,24 +33,6 @@ public class DocumentController {
     private final UserService userService;
     private final NotificationService notificationService;
 
-    //JUST FOR TESTING
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Iterable<Document>> getDocuments(@RequestParam final Optional<String> docType, @RequestHeader("Authorization") String authHeader) {
-        if (!TokenUtility.validateAuthHeader(authHeader)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        User user = TokenUtility.getUserFromHeader(authHeader, userService);
-        final Iterable<Document> result = docType.isEmpty() || docType.get().isBlank()
-                ? documentService.getUserDocuments(user)
-                : documentService.getUserDocuments(docType.get(), user);
-        return ResponseEntity.ok(result);
-    }
-
-    //JUST FOR TESTING
-    @DeleteMapping("/all")
-    public ResponseEntity<Void> deleteAllDocuments() {
-        documentService.removeAllDocuments();
-        return ResponseEntity.noContent().build();
-    }
-
     /**
      * Get all documents of a user
      *

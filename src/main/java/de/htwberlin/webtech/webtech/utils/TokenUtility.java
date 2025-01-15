@@ -237,26 +237,4 @@ public class TokenUtility {
         if (token == null) return false;
         return validateToken(token);
     }
-
-    //TESTING
-
-    /**
-     * Generates a Test Token with expiration now
-     * @return token with expiration now
-     */
-    public static Token getTestToken() {
-        User user = new User();
-        Date now = new Date();
-        user.setUsername("HanzDieter");
-        user.setUId(12);
-        Key key = Keys.hmacShaKeyFor(System.getenv("JWT_SECRET").getBytes(StandardCharsets.UTF_8));
-        return new Token(Jwts.builder()
-                .setSubject(user.getUsername())
-                .claim("tokenType", "access")
-                .claim("uId", user.getUId())
-                .setIssuedAt(now)
-                .setExpiration(new Date(now.getTime()))
-                .signWith(key, SignatureAlgorithm.HS512)
-                .compact());
-    }
 }
