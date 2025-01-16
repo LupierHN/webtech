@@ -123,6 +123,7 @@ public class DocumentController {
         document.getSharedWith().clear();
         documentService.editDocument(document);
         historyElementService.deleteHistoryElementByDocument(document);
+        notificationService.deleteNotificationByDocument(document);
         final boolean removed = documentService.removeDocument(id, user);
         if (removed) return ResponseEntity.noContent().build();
         else return ResponseEntity.notFound().build();

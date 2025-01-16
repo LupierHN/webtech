@@ -1,5 +1,6 @@
 package de.htwberlin.webtech.webtech.persistence;
 
+import de.htwberlin.webtech.webtech.model.Document;
 import de.htwberlin.webtech.webtech.model.Notification;
 import de.htwberlin.webtech.webtech.model.User;
 import org.springframework.data.repository.CrudRepository;
@@ -14,4 +15,6 @@ public interface NotificationRepository extends CrudRepository<Notification, Int
     Iterable<Notification> findAllByRecipient(User user);
 
     List<Notification> findAllByRecipientOrderByTimestampDesc(User user);
+
+    List<Notification> findAllByDocument(Document document);
 }

@@ -98,6 +98,18 @@ public class NotificationService {
     }
 
     /**
+     * Delete a notification by Document
+     *
+     * @param document Document
+     */
+    public void deleteNotificationByDocument(Document document) {
+        List<Notification> notifications = this.notificationRepository.findAllByDocument(document);
+        if (notifications != null && !notifications.isEmpty()) {
+            this.notificationRepository.deleteAll(notifications);
+        }
+    }
+
+    /**
      * Check for new notifications
      *
      * @param user User
