@@ -57,6 +57,16 @@ public class HistoryElementService {
     }
 
     /**
+     * Delete a history element by document
+     *
+     * @param document Document
+     */
+    public void deleteHistoryElementByDocument(Document document) {
+        List<HistoryElement> historyElements = repository.findAllByDocument(document);
+        repository.deleteAll(historyElements);
+    }
+
+    /**
      * Delete a history element
      *
      * @param histId History element id
