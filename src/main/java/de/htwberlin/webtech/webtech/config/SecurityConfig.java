@@ -28,11 +28,12 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/auth/**").permitAll()
                                 .requestMatchers("/api/documents/**").permitAll()
+                                .requestMatchers("/api/history/**").permitAll()
                                 .anyRequest().authenticated())
                 .httpBasic(Customizer.withDefaults())
                 .sessionManagement(httpSecuritySessionManagementConfigurer -> httpSecuritySessionManagementConfigurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
-        //http.addFilterBefore(new RequestLoggingFilter(), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(new RequestLoggingFilter(), UsernamePasswordAuthenticationFilter.class);
         http.addFilterBefore(new JwtRequestFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
