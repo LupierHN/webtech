@@ -63,7 +63,7 @@ public class HistoryElementService {
      */
     public void deleteHistoryElementByDocument(Document document) {
         List<HistoryElement> historyElements = repository.findAllByDocument(document);
-        repository.deleteAll(historyElements);
+        if (historyElements != null && !historyElements.isEmpty()) repository.deleteAll(historyElements);
     }
 
     /**
