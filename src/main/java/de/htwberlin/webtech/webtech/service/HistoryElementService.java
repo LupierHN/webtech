@@ -25,6 +25,10 @@ public class HistoryElementService {
      * @return HistoryElement the new history element
      */
     public HistoryElement addHistoryElement(User user, Document document) {
+        List<HistoryElement> knownHistoryElements = repository.findAllByDocumentAndUser(document, user);
+        if (knownHistoryElements != null && !knownHistoryElements.isEmpty()) {
+            return knownHistoryElements.getFirst();
+        }
         HistoryElement historyElement = new HistoryElement();
         historyElement.setUser(user);
         historyElement.setDocument(document);
