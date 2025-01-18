@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.htwberlin.webtech.webtech.model.Document;
 import de.htwberlin.webtech.webtech.model.User;
 import de.htwberlin.webtech.webtech.service.DocumentService;
+import de.htwberlin.webtech.webtech.service.HistoryElementService;
 import de.htwberlin.webtech.webtech.service.NotificationService;
 import de.htwberlin.webtech.webtech.service.UserService;
 import de.htwberlin.webtech.webtech.utils.TokenUtility;
@@ -32,6 +33,7 @@ public class DocumentController {
     private final DocumentService documentService;
     private final UserService userService;
     private final NotificationService notificationService;
+    private final HistoryElementService historyElementService;
 
     /**
      * Get all documents of a user
@@ -120,8 +122,9 @@ public class DocumentController {
         }
         document.getSharedWith().clear();
         documentService.editDocument(document);
-        final boolean removed = documentService.removeDocument(id, user);
-        if (removed) return ResponseEntity.noContent().build();
+        notificationService.deleteNotificationsByDocument(document);
+        historyElementService.deleteHistoryElementsByDocument(document);
+        if (documentService.removeDocument(id, user)) return ResponseEntity.noContent().build();
         else return ResponseEntity.notFound().build();
     }
 

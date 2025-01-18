@@ -63,7 +63,6 @@ public class HistoryElementService {
      * @param user User
      */
     public void deleteHistoryElement(int histId, User user) {
-        List<HistoryElement> historyElements = repository.findAllByUserOrderByTimestampDesc(user);
         HistoryElement historyElement = repository.findById(histId).orElse(null);
         if (historyElement != null) {
             repository.delete(historyElement);
@@ -72,4 +71,12 @@ public class HistoryElementService {
         }
     }
 
+    /**
+     * Delete all history elements of a document
+     *
+     * @param document
+     */
+    public void deleteHistoryElementsByDocument(Document document) {
+        repository.deleteAll(repository.findAllByDocument(document));
+    }
 }

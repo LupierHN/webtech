@@ -115,4 +115,13 @@ public class NotificationService {
     public void deleteAllNotifications(User user) {
         this.notificationRepository.deleteAll(this.notificationRepository.findAllByRecipient(user));
     }
+
+    /**
+     * Delete all notifications for a document
+     *
+     * @param document Document
+     */
+    public void deleteNotificationsByDocument(Document document) {
+        this.notificationRepository.deleteAll(this.notificationRepository.findAllByDocument(document));
+    }
 }
