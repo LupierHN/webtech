@@ -11,6 +11,5 @@ import java.util.List;
 @Repository
 public interface HistoryElementRepository extends CrudRepository<HistoryElement, Integer> {
     List<HistoryElement> findAllByUserOrderByTimestampDesc(User user);
-
-    Iterable<HistoryElement> findAllByDocument(Document document);
+    List<HistoryElement> findAllByDocument(Document document);
 }

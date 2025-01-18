@@ -16,5 +16,5 @@ public interface NotificationRepository extends CrudRepository<Notification, Int
 
     List<Notification> findAllByRecipientOrderByTimestampDesc(User user);
 
-    Iterable<Notification> findAllByDocument(Document document);
+    List<Notification> findAllByDocument(Document document);
 }
